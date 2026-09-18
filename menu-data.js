@@ -146,9 +146,147 @@ window.FUSION_MENU = [
     ]
   },
   {
+    id: "kung-po",
+    title: "Kung Po Style Dishes",
+    spicy: true,
+    nuts: true,
+    items: [
+      { n: 80, name: "Combination", price: "7.20" },
+      { n: 81, name: "King Prawn", price: "7.20" },
+      { n: 82, name: "Roast Duck", price: "7.70" },
+      { n: 83, name: "Chicken", price: "6.30" },
+      { n: 84, name: "Beef", price: "6.30" },
+      { n: 85, name: "Roast Pork", price: "6.30" }
+    ]
+  },
+  {
+    id: "chicken",
+    title: "Chicken Dishes",
+    items: [
+      { n: 86, name: "Wor Tip Chicken", price: "6.00" },
+      { n: 87, name: "Chicken with Cashew Nuts", price: "6.50", nuts: true },
+      { n: 88, name: "Chicken with Ginger & Spring Onion", price: "6.30" },
+      { n: 89, name: "Breast Chicken Cantonese Style", price: "6.30" },
+      { n: 90, name: "Chicken with Green Pepper & Black Bean Sauce", price: "6.00", spicy: true },
+      { n: 91, name: "Chicken with Black Pepper Sauce", price: "6.00", spicy: true },
+      { n: 92, name: "Chicken with Mushroom & Black Bean Sauce", price: "6.00" },
+      { n: 93, name: "Chicken with Mushroom", price: "6.00" },
+      { n: 94, name: "Chicken with Chinese Mushroom", price: "6.00" },
+      { n: 95, name: "Chicken in Plum Sauce", price: "6.30" },
+      { n: 96, name: "Chicken in Lemon or Orange Sauce", price: "6.00" },
+      { n: 97, name: "Chicken with Pineapple", price: "6.00" },
+      { n: 98, name: "Chicken with Onion", price: "6.00" },
+      { n: 99, name: "Chicken with Tomato", price: "6.00" },
+      { n: 100, name: "Chicken with Sweetcorn", price: "6.00" },
+      { n: 101, name: "Chicken with Oyster Sauce", price: "6.00" },
+      { n: 102, name: "Chicken with Chilli Garlic Wine Sauce", price: "6.00", spicy: true },
+      { n: 103, name: "Chicken with Pickled Ginger & Pineapple", price: "6.00" }
+    ]
+  },
+  {
+    id: "beef-pork",
+    title: "Beef or Pork Dishes",
+    items: [
+      { n: 104, name: "Beef with Cashew Nuts", price: "6.50", nuts: true },
+      { n: 105, name: "Beef with Ginger Spring Onion", price: "6.30" },
+      { n: 106, name: "Beef or Pork with Green Pepper & Black Bean Sauce", price: "6.00", spicy: true },
+      { n: 107, name: "Beef with Black Pepper Sauce", price: "6.00", spicy: true },
+      { n: 108, name: "Beef or Pork with Mushroom & Black Bean Sauce", price: "6.00" },
+      { n: 109, name: "Beef or Pork with Oyster Sauce", price: "6.00" },
+      { n: 110, name: "Beef or Pork with Mushroom", price: "6.00" },
+      { n: 111, name: "Beef with Chinese Mushroom", price: "6.00" },
+      { n: 112, name: "Beef with Chilli Garlic Wine Sauce", price: "6.00", spicy: true },
+      { n: 113, name: "Beef with Pickled Ginger & Pineapple", price: "6.00" },
+      { n: 114, name: "Beef with Onion", price: "6.00" },
+      { n: 115, name: "Beef with Pineapple", price: "6.00" },
+      { n: 116, name: "Beef with Tomato", price: "6.00" },
+      { n: 117, name: "Roast Pork Cantonese Style", price: "6.50" }
+    ]
+  },
+  {
+    id: "seafood",
+    title: "Seafood Dishes",
+    items: [
+      { n: 118, name: "King Prawn with Cashew Nuts", price: "7.30", nuts: true },
+      { n: 119, name: "King Prawn with Ginger & Spring Onion", price: "7.20" },
+      { n: 120, name: "King Prawn with Green Pepper & Black Bean Sauce", price: "7.00", spicy: true },
+      { n: 121, name: "King Prawn with Black Pepper Sauce", price: "7.00", spicy: true },
+      { n: 122, name: "King Prawn with Mushroom", price: "7.00" },
+      { n: 123, name: "Deep Fried King Prawn in Plum Sauce", price: "7.00", neu: true },
+      { n: 124, name: "King Prawn with Pineapple", price: "7.00" },
+      { n: 125, name: "King Prawn with Chilli Garlic Wine Sauce", price: "7.00", spicy: true },
+      { n: 126, name: "King Prawn with Pickled Ginger & Pineapple", price: "7.00" },
+      { n: 127, name: "King Prawn with Tomato", price: "7.00" },
+      { n: 128, name: "King Prawn with Oyster Sauce", price: "7.00" },
+      { n: 129, name: "Squid with Green Pepper & Black Bean Sauce", price: "7.50", spicy: true },
+      { n: 130, name: "Squid with Mushroom", price: "7.50" },
+      { n: 131, name: "Squid with Ginger & Spring Onion", price: "7.50" }
+    ]
+  },
+  {
+    id: "thai-chilli",
+    title: "Thai Chilli Style",
+    spicy: true,
+    items: [
+      { n: 132, name: "King Prawn", price: "7.20" },
+      { n: 133, name: "Duck", price: "7.70" },
+      { n: 134, name: "Chicken", price: "6.30" },
+      { n: 135, name: "Beef", price: "6.30" }
+    ]
+  },
+  {
+    id: "pattaya",
+    title: "Pattaya Style",
+    spicy: true,
+    items: [
+      { n: 136, name: "King Prawn", price: "7.20" },
+      { n: 137, name: "Duck", price: "7.70" },
+      { n: 138, name: "Chicken", price: "6.30" },
+      { n: 139, name: "Beef", price: "6.30" }
+    ]
+  },
+  {
+    id: "thai-curry",
+    title: "Thai Red or Green Curry",
+    spicy: true,
+    items: [
+      { n: 140, name: "House Special", price: "7.20" },
+      { n: 141, name: "King Prawn", price: "7.20" },
+      { n: 142, name: "Duck", price: "7.70" },
+      { n: 143, name: "Chicken", price: "6.30" },
+      { n: 144, name: "Beef", price: "6.30" }
+    ]
+  },
+  {
+    id: "siam",
+    title: "Siam Style",
+    spicy: true,
+    items: [
+      { n: 145, name: "King Prawn", price: "7.20" },
+      { n: 146, name: "Duck", price: "7.70" },
+      { n: 147, name: "Chicken", price: "6.30" },
+      { n: 148, name: "Beef", price: "6.30" }
+    ]
+  },
+  {
+    id: "roast-duck",
+    title: "Roast Duck Dishes",
+    items: [
+      { n: 149, name: "Roast Duck in Plum Sauce", price: "7.70" },
+      { n: 150, name: "Roast Duck with Ginger & Spring Onion", price: "7.70" },
+      { n: 151, name: "Roast Duck with Cashew Nuts", price: "7.70", nuts: true },
+      { n: 152, name: "Roast Duck in Lemon or Orange Sauce", price: "7.50" },
+      { n: 153, name: "Roast Duck Cantonese (on soy sauce)", price: "7.50" },
+      { n: 154, name: "Roast Duck with Green Pepper & Black Bean Sauce", price: "7.50", spicy: true },
+      { n: 155, name: "Roast Duck with Mushroom", price: "7.50" },
+      { n: 156, name: "Roast Duck with Pickled Ginger & Pineapple", price: "7.50" },
+      { n: 157, name: "Roast Duck in Peking Sauce", price: "7.70" }
+    ]
+  },
+  {
     id: "extras",
     title: "Extra Portions",
-    blurb: "All main dishes exclude rice or chips. Onions or mushrooms +50p.",
+    blurb: "All main dishes exclude rice or chips. Onions or mushrooms +50p. Rice, chow mein and other mains (nos. 158–212) — ask when ordering if not listed here.",
     items: [
       { n: 213, name: "Egg Fried Rice", price: "2.30" },
       { n: 214, name: "Boiled Rice", price: "2.30" },

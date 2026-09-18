@@ -557,8 +557,14 @@ a {
 
 .photo-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.65rem;
+}
+
+@media (min-width: 900px) {
+  .photo-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .photo-row a {
