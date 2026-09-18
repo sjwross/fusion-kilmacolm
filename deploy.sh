@@ -4,18 +4,19 @@ set -euo pipefail
 # Deploy Fusion Kilmacolm to the existing Namecheap subdomain
 # https://fusion-kilmacolm.yurshack.co.uk/
 #
-# Document root (cPanel subdomain on premium139-4.web-hosting.com):
-#   typically ~/public_html/fusion-kilmacolm  (override with REMOTE_DIR)
+# Expects Cursor secrets (preferred):
+#   YURSHACK_SSH_PRIVATE_KEY
+#   YURSHACK_SSH_USER
+#   YURSHACK_SSH_HOST   (optional; default premium139-4.web-hosting.com)
+#   YURSHACK_SSH_PORT   (optional; default 21098)
+#   REMOTE_DIR          (optional; default public_html/fusion-kilmacolm)
 #
-# Usage:
-#   ./deploy.sh
-#   SSH_USER=myuser SSH_HOST=premium139-4.web-hosting.com ./deploy.sh
-#
-# Auth: set SSH_PRIVATE_KEY (PEM) in the environment, or use your local ssh-agent/key.
+# Plain SSH_* names are also accepted as fallbacks.
 
-HOST="${SSH_HOST:-premium139-4.web-hosting.com}"
-PORT="${SSH_PORT:-21098}"
-USER_NAME="${SSH_USER:-}"
+HOST="${YURSHACK_SSH_HOST:-${SSH_HOST:-premium139-4.web-hosting.com}}"
+PORT="${YURSHACK_SSH_PORT:-${SSH_PORT:-21098}}"
+USER_NAME="${YURSHACK_SSH_USER:-${SSH_USER:-}}"
+PRIVATE_KEY="${YURSHACK_SSH_PRIVATE_KEY:-${SSH_PRIVATE_KEY:-}}"
 REMOTE_DIR="${REMOTE_DIR:-public_html/fusion-kilmacolm}"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
@@ -28,18 +29,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ -n "${SSH_PRIVATE_KEY:-}" ]]; then
-  KEY_FILE="$(mktemp)"
-  # Support keys pasted with literal \n sequences
-  printf '%s\n' "$SSH_PRIVATE_KEY" | sed 's/\r$//' | sed 's/\\n/\n/g' >"$KEY_FILE"
-  chmod 600 "$KEY_FILE"
-  SSH_OPTS+=(-i "$KEY_FILE")
-fi
-
 if [[ -z "$USER_NAME" ]]; then
-  echo "Set SSH_USER to your Namecheap/cPanel username." >&2
+  echo "Missing YURSHACK_SSH_USER (cPanel username)." >&2
   exit 1
 fi
+
+if [[ -z "$PRIVATE_KEY" ]]; then
+  echo "Missing YURSHACK_SSH_PRIVATE_KEY." >&2
+  exit 1
+fi
+
+KEY_FILE="$(mktemp)"
+printf '%s\n' "$PRIVATE_KEY" | sed 's/\r$//' | sed 's/\\n/\n/g' >"$KEY_FILE"
+chmod 600 "$KEY_FILE"
+SSH_OPTS+=(-i "$KEY_FILE")
 
 TARGET="${USER_NAME}@${HOST}"
 echo "Deploying $ROOT -> ${TARGET}:~/${REMOTE_DIR} (port ${PORT})"
