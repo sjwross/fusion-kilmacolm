@@ -1,173 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fusion Kilmacolm</title>
-  <meta name="description" content="Fusion Kilmacolm — site coming soon.">
+  <title>Fusion Kilmacolm — Chinese &amp; Thai Takeaway</title>
+  <meta name="description" content="Fusion Kilmacolm: Peking, Cantonese and Thai takeaway at 5 Lochwinnoch Road. Call 01505 872912 to order.">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta property="og:title" content="Fusion Kilmacolm">
+  <meta property="og:description" content="Peking, Cantonese and Thai cuisine takeaway in Kilmacolm.">
+  <meta property="og:image" content="assets/fusion-logo.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --ink: #1a2a24;
-      --mist: #e8f0eb;
-      --leaf: #2f6b4f;
-      --leaf-deep: #1e4a36;
-      --glow-soft: rgba(255, 248, 230, 0.55);
-      --font-display: "Fraunces", Georgia, serif;
-      --font-body: "Source Sans 3", "Segoe UI", sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      min-height: 100%;
-    }
-
-    body {
-      font-family: var(--font-body);
-      color: var(--ink);
-      background:
-        radial-gradient(120% 80% at 10% 0%, var(--glow-soft), transparent 55%),
-        radial-gradient(90% 70% at 90% 20%, rgba(47, 107, 79, 0.18), transparent 50%),
-        linear-gradient(165deg, #f4faf6 0%, #dce9e1 45%, #c5d8cc 100%);
-      overflow-x: hidden;
-    }
-
-    .atmosphere {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        repeating-linear-gradient(
-          -18deg,
-          transparent,
-          transparent 11px,
-          rgba(26, 42, 36, 0.025) 11px,
-          rgba(26, 42, 36, 0.025) 12px
-        );
-      animation: drift 28s linear infinite;
-      opacity: 0.7;
-    }
-
-    @keyframes drift {
-      from { transform: translateX(0); }
-      to { transform: translateX(-24px); }
-    }
-
-    main {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: clamp(1.5rem, 4vw, 3rem);
-    }
-
-    .hero {
-      width: min(40rem, 100%);
-      text-align: center;
-    }
-
-    .brand {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: clamp(2.75rem, 9vw, 4.75rem);
-      line-height: 0.95;
-      letter-spacing: -0.02em;
-      color: var(--leaf-deep);
-      animation: rise 0.9s ease-out both;
-    }
-
-    .brand span {
-      display: block;
-      font-weight: 500;
-      font-size: 0.42em;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--leaf);
-      margin-top: 0.65em;
-    }
-
-    .lede {
-      margin-top: 1.5rem;
-      font-size: clamp(1.05rem, 2.4vw, 1.25rem);
-      line-height: 1.55;
-      max-width: 28rem;
-      margin-inline: auto;
-      color: rgba(26, 42, 36, 0.82);
-      animation: rise 0.9s ease-out 0.15s both;
-    }
-
-    .status {
-      margin-top: 2rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--leaf-deep);
-      animation: rise 0.9s ease-out 0.3s both;
-    }
-
-    .status::before {
-      content: "";
-      width: 0.55rem;
-      height: 0.55rem;
-      border-radius: 50%;
-      background: var(--leaf);
-      box-shadow: 0 0 0 0 rgba(47, 107, 79, 0.45);
-      animation: pulse 2.2s ease-out infinite;
-    }
-
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(47, 107, 79, 0.45); }
-      70% { box-shadow: 0 0 0 12px rgba(47, 107, 79, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(47, 107, 79, 0); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .atmosphere,
-      .brand,
-      .lede,
-      .status,
-      .status::before {
-        animation: none;
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="atmosphere" aria-hidden="true"></div>
-  <main>
-    <section class="hero">
-      <h1 class="brand">
-        Fusion
-        <span>Kilmacolm</span>
-      </h1>
-      <p class="lede">
-        A placeholder home page while the full site is being prepared.
-      </p>
-      <p class="status">Coming soon</p>
+  <a class="skip" href="#menu">Skip to menu</a>
+
+  <header class="topbar">
+    <a class="topbar-brand" href="#top">
+      <img src="assets/fusion-logo.jpg" width="38" height="38" alt="">
+      <span>Fusion</span>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#menu">Menu</a>
+      <a href="#visit">Visit</a>
+      <a href="#hours">Hours</a>
+    </nav>
+    <a class="call-pill" href="tel:+441505872912">01505 872912</a>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-label="Fusion Kilmacolm">
+      <div class="hero-media" aria-hidden="true">
+        <img src="assets/hero-storefront.jpg" alt="" width="933" height="1000">
+      </div>
+      <div class="hero-wash" aria-hidden="true"></div>
+      <div class="hero-pattern" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <img class="hero-logo" src="assets/fusion-logo.jpg" width="208" height="208" alt="Fusion">
+        <h1>
+          Fusion
+          <em>Kilmacolm</em>
+        </h1>
+        <p class="hero-lede">
+          Peking, Cantonese and Thai takeaway on Lochwinnoch Road — order for collection or delivery.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-gold" href="tel:+441505872912">Call to order</a>
+          <a class="btn btn-ghost" href="#menu">View the menu</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section menu-section" id="menu">
+      <div class="section-head">
+        <h2>Full menu</h2>
+        <p>Prices from the printed takeaway menu. Allergen advice available when you order — please mention any requirements.</p>
+        <div class="section-rule" aria-hidden="true"></div>
+      </div>
+
+      <div class="menu-nav" id="menuNav" role="tablist" aria-label="Menu categories"></div>
+
+      <div class="menu-board">
+        <div class="menu-legend" aria-label="Menu key">
+          <span><span class="tag tag-spicy" aria-hidden="true">!</span> Spicy</span>
+          <span><span class="tag tag-new" aria-hidden="true">New</span> New</span>
+          <span><span class="tag tag-nuts" aria-hidden="true">N</span> Contains nuts</span>
+        </div>
+        <div id="menuRoot"></div>
+      </div>
+
+      <div class="menu-photos">
+        <h3>Printed menu pages</h3>
+        <p>Browse the takeaway menu sheets as photographed in-store.</p>
+        <div class="photo-row">
+          <a href="assets/menu-soups-starters.jpg" target="_blank" rel="noopener">
+            <img src="assets/menu-soups-starters.jpg" alt="Soups and appetisers menu page" width="466" height="500" loading="lazy">
+          </a>
+          <a href="assets/menu-specials.jpg" target="_blank" rel="noopener">
+            <img src="assets/menu-specials.jpg" alt="Salt and chilli, curry and specialty dishes menu page" width="467" height="500" loading="lazy">
+          </a>
+          <a href="assets/menu-extras.jpg" target="_blank" rel="noopener">
+            <img src="assets/menu-extras.jpg" alt="Extra portions and snack box meals menu page" width="467" height="500" loading="lazy">
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section visit-section" id="visit">
+      <div class="section-head">
+        <h2>Visit &amp; order</h2>
+        <p>Open evenings for collection and delivery across Kilmacolm.</p>
+        <div class="section-rule" aria-hidden="true"></div>
+      </div>
+
+      <div class="visit-grid">
+        <div class="visit-card" id="hours">
+          <h3>Details</h3>
+          <dl>
+            <div>
+              <dt>Address</dt>
+              <dd>5 Lochwinnoch Road<br>Kilmacolm PA13 4HB</dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd><a href="tel:+441505872912">01505 872912</a></dd>
+            </div>
+            <div>
+              <dt>Opening hours</dt>
+              <dd>
+                <table class="hours-table">
+                  <tbody>
+                    <tr><td>Monday – Thursday</td><td>16:30 – 22:00</td></tr>
+                    <tr><td>Friday – Saturday</td><td>16:30 – 23:00</td></tr>
+                    <tr><td>Sunday</td><td>16:30 – 22:00</td></tr>
+                  </tbody>
+                </table>
+              </dd>
+            </div>
+            <div>
+              <dt>Cuisine</dt>
+              <dd>Peking · Cantonese · Thai</dd>
+            </div>
+          </dl>
+          <p style="margin-top:1.25rem">
+            <a class="btn btn-gold" href="tel:+441505872912">01505 872912</a>
+          </p>
+        </div>
+        <div class="visit-media">
+          <img src="assets/dish-sweet-sour.jpg" alt="Sweet and sour style takeaway dish with rice" width="549" height="400" loading="lazy">
+        </div>
+      </div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <img src="assets/fusion-logo.jpg" width="56" height="56" alt="">
+    <p>Fusion Kilmacolm · Chinese &amp; Thai takeaway</p>
+    <p class="fine">Menu prices may change — confirm when ordering.</p>
+  </footer>
+
+  <script src="menu-data.js"></script>
+  <script src="menu.js"></script>
 </body>
 </html>
