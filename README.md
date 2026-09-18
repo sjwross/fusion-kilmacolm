@@ -20,12 +20,11 @@ Document root on `premium139-4.web-hosting.com` (SSH port `21098`):
 `~/public_html/fusion-kilmacolm`
 
 ```bash
-export SSH_USER='your-cpanel-user'
-export SSH_PRIVATE_KEY="$(cat ~/.ssh/id_ed25519)"   # or paste PEM
-# optional overrides:
-# export SSH_HOST=premium139-4.web-hosting.com
-# export SSH_PORT=21098
-# export REMOTE_DIR=public_html/fusion-kilmacolm
+# Secrets expected in the Cloud Agent environment:
+#   YURSHACK_SSH_PRIVATE_KEY
+#   YURSHACK_SSH_USER
+#   YURSHACK_SSH_HOST   (optional)
+#   YURSHACK_SSH_PORT   (optional)
 ./deploy.sh
 ```
 
