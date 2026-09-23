@@ -17,7 +17,7 @@ HOST="${YURSHACK_SSH_HOST:-${SSH_HOST:-premium139-4.web-hosting.com}}"
 PORT="${YURSHACK_SSH_PORT:-${SSH_PORT:-21098}}"
 USER_NAME="${YURSHACK_SSH_USER:-${SSH_USER:-}}"
 PRIVATE_KEY="${YURSHACK_SSH_PRIVATE_KEY:-${SSH_PRIVATE_KEY:-}}"
-REMOTE_DIR="${REMOTE_DIR:-public_html/fusion-kilmacolm}"
+REMOTE_DIR="${REMOTE_DIR:-subdomains/fusion-kilmacolm}"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -p "$PORT")
