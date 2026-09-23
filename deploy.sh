@@ -9,7 +9,7 @@ set -euo pipefail
 #   YURSHACK_SSH_USER
 #   YURSHACK_SSH_HOST   (optional; default premium139-4.web-hosting.com)
 #   YURSHACK_SSH_PORT   (optional; default 21098)
-#   REMOTE_DIR          (optional; default public_html/fusion-kilmacolm)
+#   REMOTE_DIR          (optional; default subdomains/fusion-kilmacolm)
 #
 # Plain SSH_* names are also accepted as fallbacks.
 
