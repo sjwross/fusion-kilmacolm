@@ -17,7 +17,7 @@ python3 -m http.server 8000 --bind 0.0.0.0
 
 Document root on `premium139-4.web-hosting.com` (SSH port `21098`):
 
-`~/public_html/fusion-kilmacolm`
+`~/subdomains/fusion-kilmacolm`
 
 ```bash
 # Secrets expected in the Cloud Agent environment:
