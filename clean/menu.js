@@ -23,7 +23,7 @@
     noodles: ["chow mein", "noodle"],
     noodle: ["chow mein", "noodle"],
     "chow mein": ["chow mein", "noodle"],
-    lo mein: ["chow mein"],
+    "lo mein": ["chow mein"],
     "egg roll": ["spring roll", "pancake roll"],
     "egg rolls": ["spring roll", "pancake roll"],
     "spring roll": ["spring roll", "pancake roll"],
@@ -72,7 +72,6 @@
     appetizers: ["appetiser"],
     "deep fried": ["deep fried", "crispy", "balls"],
     crispy: ["crispy", "deep fried"],
-    fried: ["deep fried", "fried", "balls"],
     wings: ["chicken wings", "wings"],
     ribs: ["spare ribs", "ribs"],
     "spare rib": ["spare ribs"],
@@ -164,10 +163,10 @@
   }
 
   function fuzzyAllowed(len) {
-    if (len < 4) return 0;
-    if (len <= 6) return 1;
+    // Keep short tokens exact/prefix-only so fries≠fried.
+    if (len < 6) return 0;
     if (len <= 9) return 2;
-    return 3;
+    return 2;
   }
 
   function levenshtein(a, b) {
@@ -195,25 +194,52 @@
 
     const phrases = new Set([n]);
     const toks = new Set(tokens(n));
+    const padded = ` ${n} `;
 
-    // Multi-word synonym keys first (longest match)
+    // Multi-word synonym keys first (longest match), whole words only
     const keys = Object.keys(SYNONYMS).sort((a, b) => b.length - a.length);
-    let remainder = n;
     for (const key of keys) {
-      if (remainder.includes(key)) {
+      const kn = normalize(key);
+      if (!kn) continue;
+      if (padded.includes(` ${kn} `)) {
         SYNONYMS[key].forEach((syn) => {
           phrases.add(normalize(syn));
           tokens(syn).forEach((t) => toks.add(t));
         });
-        phrases.add(normalize(key));
-        tokens(key).forEach((t) => toks.add(t));
+        phrases.add(kn);
+        tokens(kn).forEach((t) => toks.add(t));
       }
     }
 
-    // Per-token synonyms
+    // Per-token synonyms (exact) + careful fuzzy synonym keys (wantonn → wanton)
+    // Skip fuzzy on short keys like fried/fries (1-letter neighbors).
+    const synKeys = Object.keys(SYNONYMS);
     tokens(n).forEach((t) => {
       if (SYNONYMS[t]) {
         SYNONYMS[t].forEach((syn) => {
+          phrases.add(normalize(syn));
+          tokens(syn).forEach((x) => toks.add(x));
+        });
+        return;
+      }
+      if (t.length < 6) return;
+      const allowed = 1;
+      let bestKey = null;
+      let bestD = Infinity;
+      for (const key of synKeys) {
+        const kn = normalize(key);
+        if (!kn || kn.length < 6) continue;
+        if (Math.abs(kn.length - t.length) > allowed) continue;
+        const d = levenshtein(t, kn);
+        if (d > 0 && d <= allowed && d < bestD) {
+          bestD = d;
+          bestKey = key;
+        }
+      }
+      if (bestKey) {
+        phrases.add(normalize(bestKey));
+        tokens(bestKey).forEach((x) => toks.add(x));
+        SYNONYMS[bestKey].forEach((syn) => {
           phrases.add(normalize(syn));
           tokens(syn).forEach((x) => toks.add(x));
         });
@@ -251,7 +277,7 @@
       html += `<div class="box-grid">${cat.boxes
         .map((box, i) => {
           const hay = normalize(
-            `snack box ${box.code} ${box.lines.join(" ")} ${cat.title} ${cat.blurb || ""}`
+            `snack box ${box.code} ${box.lines.join(" ")} ${cat.title}`
           );
           addIndexEntry({
             id: `box-${cat.id}-${box.code}`,
@@ -272,12 +298,12 @@
     } else {
       html += `<ul class="menu-list">${cat.items
         .map((item) => {
-          const displayName =
-            item.name.length < 18 && !/dishes|style|soup|sauce/i.test(item.name)
-              ? `${item.name} — ${cat.title.replace(/ Dishes$/, "")}`
-              : item.name;
+          const shortName = item.name.length <= 18;
+          const label = shortName
+            ? `${item.name} (${cat.title.replace(/ Dishes$/, "").replace(/ Style$/, "")})`
+            : item.name;
           const hay = normalize(
-            `${item.name} ${item.note || ""} ${cat.title} ${cat.blurb || ""} ${
+            `${item.name} ${item.note || ""} ${cat.title} ${
               item.spicy || cat.spicy ? "spicy chilli hot" : ""
             } ${item.nuts || cat.nuts ? "nuts satay cashew" : ""}`
           );
@@ -286,7 +312,7 @@
             kind: "item",
             catId: cat.id,
             n: item.n,
-            label: displayName,
+            label,
             name: item.name,
             hay,
             tokens: tokens(hay),
@@ -382,6 +408,20 @@
     if (numMatch && String(entry.n) === expanded.phrases[0]) {
       score += 200;
       matched = true;
+    }
+
+    // Prefer dishes that cover more of the typed words (chicken + curry > chicken soup)
+    if (matched && expanded.tokens.length > 1) {
+      let covered = 0;
+      for (const qt of expanded.tokens) {
+        if (qt.length < 2 || STOPWORDS.has(qt)) continue;
+        const hit =
+          entry.tokens.includes(qt) ||
+          entry.tokens.some((et) => et.startsWith(qt) || (qt.startsWith(et) && et.length >= 4)) ||
+          entry.hay.includes(qt);
+        if (hit) covered += 1;
+      }
+      score += covered * 35;
     }
 
     return matched ? score : 0;
@@ -490,14 +530,29 @@
     if (!searchStatus) return;
 
     if (scored.length) {
-      const top = scored.slice(0, 3).map((x) => x.entry.label);
+      const top = scored.slice(0, 4).map((x) => x.entry.label);
       const synNote =
-        expanded.phrases.length > 1 && !normalize(q).includes("prawn") && /shrimp|fries|noodle|chili|wanton|szechuan|sichuan|schez/i.test(q)
+        expanded.phrases.some((p) => p !== normalize(q) && p.length > 2) &&
+        /shrimp|fries|noodle|chili|wanton|szechuan|sichuan|schez|bbq|calamari/i.test(q)
           ? ` <span class="search-syn">Matched related menu terms.</span>`
           : "";
+      const topLine = top.length
+        ? ` Top: ${top.map((t) => `<button type="button" class="search-suggest" data-suggest="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join(" ")}`
+        : "";
       searchStatus.hidden = false;
-      searchStatus.innerHTML = `<strong>${scored.length}</strong> match${scored.length === 1 ? "" : "es"} for “${escapeHtml(q)}”.${synNote}`;
-      // Soft did-you-mean even when we have results if query looks typo'd vs top label
+      searchStatus.innerHTML = `<strong>${scored.length}</strong> match${scored.length === 1 ? "" : "es"} for “${escapeHtml(q)}”.${synNote}${topLine}`;
+      searchStatus.querySelectorAll("[data-suggest]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const v = btn.getAttribute("data-suggest");
+          // Prefer filtering to that dish name
+          searchInput.value = v;
+          applySearch(v);
+          searchInput.focus();
+          const id = scored.find((x) => x.entry.label === v)?.entry.id;
+          const el = id && root.querySelector(`[data-search-id="${id}"]`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
       return;
     }
 
