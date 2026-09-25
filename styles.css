@@ -733,48 +733,25 @@ a {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 220vmax;
-  height: 220vmax;
+  width: 180vmax;
+  height: 180vmax;
   transform: translate(-50%, -50%) rotate(-28deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.16;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2.5rem 3rem;
+  align-content: center;
+  justify-items: center;
+  opacity: 0.28;
 }
 
-.yur-shack-watermark__grid::before {
-  content:
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK\A"
-    "YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK  ·  YUR SHACK";
-  font-family: var(--font-display);
+.yur-shack-watermark__grid span {
+  font-family: var(--font-body), "Segoe UI", Arial, sans-serif;
   font-weight: 700;
-  font-size: clamp(1.2rem, 2.6vw, 1.85rem);
-  letter-spacing: 0.2em;
-  line-height: 4.6rem;
-  color: #f0d078;
-  white-space: pre;
-  text-align: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .yur-shack-watermark {
-    opacity: 0.9;
-  }
+  font-size: clamp(1rem, 2.2vw, 1.55rem);
+  letter-spacing: 0.14em;
+  color: #f5dfa0;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
 
 /* Motion */
