@@ -62,6 +62,23 @@
         <div class="section-rule" aria-hidden="true"></div>
       </div>
 
+      <div class="menu-search" role="search">
+        <label class="menu-search__label" for="menuSearch">Search the menu</label>
+        <div class="menu-search__row">
+          <input
+            id="menuSearch"
+            class="menu-search__input"
+            type="search"
+            placeholder="Try shrimp, curry, chips, won ton…"
+            autocomplete="off"
+            spellcheck="true"
+            enterkeyhint="search"
+          >
+          <button type="button" id="menuSearchClear" class="menu-search__clear" hidden>Clear</button>
+        </div>
+        <p id="menuSearchStatus" class="menu-search__status" hidden></p>
+      </div>
+
       <div class="menu-nav" id="menuNav" role="tablist" aria-label="Menu categories"></div>
 
       <div class="menu-board">
