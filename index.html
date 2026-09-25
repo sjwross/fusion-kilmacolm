@@ -14,10 +14,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=wm2">
+  <link rel="stylesheet" href="styles.css?v=demo-search">
 </head>
 <body>
   <div class="yur-shack-watermark" aria-hidden="true"></div>
+  <div class="demo-banner" role="status">
+    <span>Demo site</span>
+    <span class="demo-banner__sep" aria-hidden="true">·</span>
+    <span>Built by <a href="https://yurshack.co.uk" rel="noopener">Yur Shack</a></span>
+  </div>
 
   <a class="skip" href="#menu">Skip to menu</a>
 
@@ -62,6 +67,23 @@
         <h2>Full menu</h2>
         <p>Prices from the printed takeaway menu. Allergen advice available when you order — please mention any requirements.</p>
         <div class="section-rule" aria-hidden="true"></div>
+      </div>
+
+      <div class="menu-search" role="search">
+        <label class="menu-search__label" for="menuSearch">Search the menu</label>
+        <div class="menu-search__row">
+          <input
+            id="menuSearch"
+            class="menu-search__input"
+            type="search"
+            placeholder="Try shrimp, curry, chips, won ton…"
+            autocomplete="off"
+            spellcheck="true"
+            enterkeyhint="search"
+          >
+          <button type="button" id="menuSearchClear" class="menu-search__clear" hidden>Clear</button>
+        </div>
+        <p id="menuSearchStatus" class="menu-search__status" hidden></p>
       </div>
 
       <div class="menu-nav" id="menuNav" role="tablist" aria-label="Menu categories"></div>
@@ -146,7 +168,7 @@
     <img src="assets/fusion-logo.png" width="56" height="56" alt="">
     <p>Fusion Kilmacolm · Chinese &amp; Thai takeaway</p>
     <p class="fine">Menu prices may change — confirm when ordering.</p>
-    <p class="fine yur-shack-credit">Site by <a href="https://yurshack.co.uk" rel="noopener">Yur Shack</a></p>
+    <p class="fine yur-shack-credit">Demo site by <a href="https://yurshack.co.uk" rel="noopener">Yur Shack</a></p>
   </footer>
 
   <script src="menu-data.js"></script>
