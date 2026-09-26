@@ -10,9 +10,9 @@
 
   /* Everyday words → menu language (UK takeaway) */
   const SYNONYMS = {
-    shrimp: ["prawn", "king prawn"],
-    shrimps: ["prawn", "king prawn"],
-    prawns: ["prawn", "king prawn"],
+    shrimp: ["king prawn", "prawn"],
+    shrimps: ["king prawn", "prawn"],
+    prawns: ["king prawn", "prawn"],
     prawn: ["king prawn", "prawn"],
     "king prawns": ["king prawn"],
     scampi: ["king prawn", "prawn"],
@@ -478,61 +478,126 @@
 
   function closestSuggestions(query, limit) {
     const n = normalize(query);
-    if (n.length < 2) return [];
+    if (!n.length) return [];
     const qTokens = tokens(n);
+    const prefix = qTokens[0] || n;
     const candidates = new Map(); // label -> score
 
-    // Prefer UK menu terms from synonym values when the typed word is close
+    function add(label, score) {
+      if (!label) return;
+      candidates.set(label, Math.max(candidates.get(label) || 0, score));
+    }
+
+    // Category titles (Soups, Satay, Seafood…)
+    menu.forEach((cat) => {
+      const title = cat.title.replace(/ Dishes$/, "").replace(/ Style$/, "");
+      const tn = normalize(title);
+      if (tn.startsWith(prefix)) add(title, 60 + prefix.length * 3);
+    });
+
+    // Synonym keys → UK menu terms (sh… → king prawn; s alone stays menu-native)
     Object.keys(SYNONYMS).forEach((key) => {
       const kn = normalize(key);
+      const menuTerm = SYNONYMS[key][0];
+      if (!menuTerm) return;
       qTokens.forEach((qt) => {
-        if (qt.length < 3) return;
-        // prefix of synonym key → suggest the menu term (shrimp… → king prawn)
-        if (kn.startsWith(qt) && kn.length >= qt.length) {
-          const menuTerm = SYNONYMS[key][0];
-          candidates.set(menuTerm, (candidates.get(menuTerm) || 0) + 40 + qt.length);
+        if (!qt) return;
+        if (kn.startsWith(qt)) {
+          // Single letter: only suggest if the UK term also starts with that letter
+          if (qt.length === 1) {
+            if (normalize(menuTerm).startsWith(qt)) add(menuTerm, 35);
+            return;
+          }
+          // Two+ letters into a foreign/alt word → suggest the menu wording
+          add(menuTerm, 45 + qt.length * 4);
         }
-        const allowed = qt.length < 5 ? 1 : fuzzyAllowed(Math.max(qt.length, kn.length));
-        if (allowed && Math.abs(qt.length - kn.length) <= allowed) {
-          const d = levenshtein(qt, kn);
-          if (d > 0 && d <= allowed) {
-            const menuTerm = SYNONYMS[key][0];
-            candidates.set(menuTerm, (candidates.get(menuTerm) || 0) + 30 - d * 6);
+        if (qt.length >= 4) {
+          const allowed = fuzzyAllowed(Math.max(qt.length, kn.length));
+          if (allowed && Math.abs(qt.length - kn.length) <= allowed) {
+            const d = levenshtein(qt, kn);
+            if (d > 0 && d <= allowed) add(menuTerm, 30 - d * 6);
           }
         }
       });
+      // Also surface UK terms that themselves start with the typed prefix
+      if (normalize(menuTerm).startsWith(prefix)) add(menuTerm, 50 + prefix.length);
     });
 
-    // Close dish names / tokens from index
+    // Dish names and tokens from the menu index
     index.forEach((entry) => {
       const nameN = normalize(entry.name || entry.label);
-      const d = levenshtein(n, nameN);
-      const maxLen = Math.max(n.length, nameN.length);
-      if (n.length >= 4 && d <= 3 && d / maxLen <= 0.45) {
-        candidates.set(entry.label, (candidates.get(entry.label) || 0) + 50 - d * 10);
+      if (nameN.startsWith(prefix)) add(entry.label, 55 + prefix.length * 2);
+
+      // Any word in the dish name starting with the prefix (e.g. “sh” → Bamboo Shoots…)
+      nameN.split(" ").forEach((word) => {
+        if (word.length < 2 || STOPWORDS.has(word)) return;
+        if (word.startsWith(prefix)) add(entry.label, 48 + prefix.length * 2);
+      });
+
+      if (n.length >= 4) {
+        const d = levenshtein(n, nameN);
+        const maxLen = Math.max(n.length, nameN.length);
+        if (d <= 3 && d / maxLen <= 0.45) add(entry.label, 50 - d * 10);
       }
+
       qTokens.forEach((qt) => {
-        if (qt.length < 3 || STOPWORDS.has(qt)) return;
+        if (!qt || STOPWORDS.has(qt)) return;
         entry.tokens.forEach((et) => {
-          if (et.length < 3 || STOPWORDS.has(et)) return;
-          if (et.startsWith(qt) && et.length > qt.length) {
-            candidates.set(et, (candidates.get(et) || 0) + 22 + qt.length);
+          if (et.length < 2 || STOPWORDS.has(et)) return;
+          if (et.startsWith(qt)) {
+            // Prefer the full dish label over a bare fragment like “shoots”
+            add(entry.label, 42 + qt.length * 3);
+            if (et.length >= 4) add(et, 28 + qt.length);
           }
-          const allowed = fuzzyAllowed(Math.max(qt.length, et.length));
-          if (!allowed) return;
-          if (Math.abs(et.length - qt.length) > allowed) return;
-          const td = levenshtein(qt, et);
-          if (td > 0 && td <= allowed) {
-            candidates.set(et, (candidates.get(et) || 0) + 20 - td * 5);
+          if (qt.length >= 4) {
+            const allowed = fuzzyAllowed(Math.max(qt.length, et.length));
+            if (!allowed || !fuzzyOk(qt, et)) return;
+            if (Math.abs(et.length - qt.length) > allowed) return;
+            const td = levenshtein(qt, et);
+            if (td > 0 && td <= allowed) add(et, 20 - td * 5);
           }
         });
       });
     });
 
+    // Prefer short, useful chips: categories / ingredients over long duplicate dish variants
     return [...candidates.entries()]
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1] - a[1] || a[0].length - b[0].length || a[0].localeCompare(b[0]))
       .slice(0, limit)
       .map(([label]) => label);
+  }
+
+  function bindSuggestClicks(scored) {
+    if (!searchStatus) return;
+    searchStatus.querySelectorAll("[data-suggest]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const v = btn.getAttribute("data-suggest");
+        searchInput.value = v;
+        applySearch(v);
+        searchInput.focus();
+        if (scored) {
+          const id = scored.find((x) => x.entry.label === v)?.entry.id;
+          const el = id && root.querySelector(`[data-search-id="${id}"]`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+    });
+  }
+
+  function showSuggestionChips(q, suggestions, mode) {
+    const chips = suggestions
+      .map(
+        (s) =>
+          `<button type="button" class="search-suggest" data-suggest="${escapeAttr(s)}">${escapeHtml(s)}</button>`
+      )
+      .join("");
+    searchStatus.hidden = false;
+    if (mode === "early") {
+      searchStatus.innerHTML = `Suggestions for “${escapeHtml(q)}”: <span class="search-suggests">${chips}</span>`;
+    } else {
+      searchStatus.innerHTML = `No exact matches for “${escapeHtml(q)}”. Did you mean: <span class="search-suggests">${chips}</span>`;
+    }
+    bindSuggestClicks(null);
   }
 
   function applySearch(raw) {
@@ -540,7 +605,7 @@
     const sections = root.querySelectorAll(".menu-category");
     const items = root.querySelectorAll("[data-search-id]");
 
-    if (!q) {
+    function showAll() {
       sections.forEach((s) => {
         s.hidden = false;
         s.classList.remove("is-search-hit");
@@ -549,16 +614,19 @@
         el.hidden = false;
         el.classList.remove("is-search-hit");
       });
+      document.body.classList.remove("menu-searching");
+    }
+
+    if (!q) {
+      showAll();
       if (searchStatus) {
         searchStatus.hidden = true;
         searchStatus.innerHTML = "";
       }
       if (searchClear) searchClear.hidden = true;
-      document.body.classList.remove("menu-searching");
       return;
     }
 
-    document.body.classList.add("menu-searching");
     if (searchClear) searchClear.hidden = false;
 
     const expanded = expandQuery(q);
@@ -566,6 +634,22 @@
       .map((entry) => ({ entry, score: scoreEntry(entry, expanded) }))
       .filter((x) => x.score > 0)
       .sort((a, b) => b.score - a.score);
+
+    // Short queries (1–2 letters): keep the full menu, only show suggestion chips
+    if (normalize(q).length <= 2 && !scored.length) {
+      showAll();
+      const suggestions = closestSuggestions(q, 8);
+      if (searchStatus) {
+        if (suggestions.length) showSuggestionChips(q, suggestions, "early");
+        else {
+          searchStatus.hidden = false;
+          searchStatus.innerHTML = `Keep typing to search — try “king prawn”, “curry”, or a letter like “c”.`;
+        }
+      }
+      return;
+    }
+
+    document.body.classList.add("menu-searching");
 
     const hitIds = new Set(scored.map((x) => x.entry.id));
     const hitCats = new Set(scored.map((x) => x.entry.catId));
@@ -598,41 +682,16 @@
         : "";
       searchStatus.hidden = false;
       searchStatus.innerHTML = `<strong>${scored.length}</strong> match${scored.length === 1 ? "" : "es"} for “${escapeHtml(q)}”.${synNote}${topLine}`;
-      searchStatus.querySelectorAll("[data-suggest]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const v = btn.getAttribute("data-suggest");
-          // Prefer filtering to that dish name
-          searchInput.value = v;
-          applySearch(v);
-          searchInput.focus();
-          const id = scored.find((x) => x.entry.label === v)?.entry.id;
-          const el = id && root.querySelector(`[data-search-id="${id}"]`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        });
-      });
+      bindSuggestClicks(scored);
       return;
     }
 
     // No matches — did you mean? (typos / near misses)
-    const suggestions = closestSuggestions(q, 5);
-    searchStatus.hidden = false;
+    const suggestions = closestSuggestions(q, 6);
     if (suggestions.length) {
-      const chips = suggestions
-        .map(
-          (s) =>
-            `<button type="button" class="search-suggest" data-suggest="${escapeAttr(s)}">${escapeHtml(s)}</button>`
-        )
-        .join("");
-      searchStatus.innerHTML = `No exact matches for “${escapeHtml(q)}”. Did you mean: <span class="search-suggests">${chips}</span>`;
-      searchStatus.querySelectorAll("[data-suggest]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const v = btn.getAttribute("data-suggest");
-          searchInput.value = v;
-          applySearch(v);
-          searchInput.focus();
-        });
-      });
+      showSuggestionChips(q, suggestions, "didyoumean");
     } else {
+      searchStatus.hidden = false;
       searchStatus.innerHTML = `No matches for “${escapeHtml(q)}”. Try a dish, number, or ingredient (e.g. king prawn, curry, chips).`;
     }
   }
