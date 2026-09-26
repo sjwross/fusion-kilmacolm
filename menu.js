@@ -163,90 +163,134 @@
   }
 
   function fuzzyAllowed(len) {
-    // Keep short tokens exact/prefix-only so fries≠fried.
-    if (len < 6) return 0;
+    // 4–5 letters: 1 edit; 6+: up to 2 (covers prwan↔prawn, chiken↔chicken)
+    if (len < 4) return 0;
+    if (len <= 5) return 1;
     if (len <= 9) return 2;
     return 2;
   }
 
+  // Pairs that are 1 edit apart but mean different foods — never fuzzy-link them
+  const FUZZY_BLOCK = new Set(["fries", "fried", "fry", "fires", "fired"]);
+
+  function fuzzyOk(a, b) {
+    if (FUZZY_BLOCK.has(a) || FUZZY_BLOCK.has(b)) return false;
+    if (a[0] !== b[0]) return false;
+    return true;
+  }
+
   function levenshtein(a, b) {
+    // Damerau–Levenshtein (adjacent transpositions count as 1) — helps prwan→prawn
     if (a === b) return 0;
     if (!a.length) return b.length;
     if (!b.length) return a.length;
-    const row = new Array(b.length + 1);
-    for (let j = 0; j <= b.length; j++) row[j] = j;
-    for (let i = 1; i <= a.length; i++) {
-      let prev = i - 1;
-      row[0] = i;
-      for (let j = 1; j <= b.length; j++) {
-        const tmp = row[j];
+    const m = a.length;
+    const n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
         const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-        row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + cost);
-        prev = tmp;
+        dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+          dp[i][j] = Math.min(dp[i][j], dp[i - 2][j - 2] + 1);
+        }
       }
     }
-    return row[b.length];
+    return dp[m][n];
+  }
+
+  function applySynonymKey(key, phrases, toks) {
+    const kn = normalize(key);
+    phrases.add(kn);
+    tokens(kn).forEach((t) => toks.add(t));
+    (SYNONYMS[key] || []).forEach((syn) => {
+      phrases.add(normalize(syn));
+      tokens(syn).forEach((t) => toks.add(t));
+    });
   }
 
   function expandQuery(query) {
     const n = normalize(query);
-    if (!n) return { phrases: [], tokens: [] };
+    if (!n) return { phrases: [], tokens: [], hint: null };
 
     const phrases = new Set([n]);
     const toks = new Set(tokens(n));
     const padded = ` ${n} `;
-
-    // Multi-word synonym keys first (longest match), whole words only
     const keys = Object.keys(SYNONYMS).sort((a, b) => b.length - a.length);
+    let hint = null;
+
+    // 1) Exact whole-word synonym keys
     for (const key of keys) {
       const kn = normalize(key);
       if (!kn) continue;
       if (padded.includes(` ${kn} `)) {
-        SYNONYMS[key].forEach((syn) => {
-          phrases.add(normalize(syn));
-          tokens(syn).forEach((t) => toks.add(t));
-        });
-        phrases.add(kn);
-        tokens(kn).forEach((t) => toks.add(t));
+        applySynonymKey(key, phrases, toks);
+        if (!hint && SYNONYMS[key][0]) hint = SYNONYMS[key][0];
       }
     }
 
-    // Per-token synonyms (exact) + careful fuzzy synonym keys (wantonn → wanton)
-    // Skip fuzzy on short keys like fried/fries (1-letter neighbors).
-    const synKeys = Object.keys(SYNONYMS);
+    // 2) Progressive prefixes while typing (shr… → shrimp → king prawn)
+    //    and fuzzy near-misses on synonym keys (wantonn → wanton).
     tokens(n).forEach((t) => {
       if (SYNONYMS[t]) {
-        SYNONYMS[t].forEach((syn) => {
-          phrases.add(normalize(syn));
-          tokens(syn).forEach((x) => toks.add(x));
-        });
+        applySynonymKey(t, phrases, toks);
+        if (!hint && SYNONYMS[t][0]) hint = SYNONYMS[t][0];
         return;
       }
-      if (t.length < 6) return;
-      const allowed = 1;
+
       let bestKey = null;
-      let bestD = Infinity;
-      for (const key of synKeys) {
+      let bestScore = -Infinity;
+
+      for (const key of keys) {
         const kn = normalize(key);
-        if (!kn || kn.length < 6) continue;
-        if (Math.abs(kn.length - t.length) > allowed) continue;
-        const d = levenshtein(t, kn);
-        if (d > 0 && d <= allowed && d < bestD) {
-          bestD = d;
-          bestKey = key;
+        if (!kn || kn.length < 3) continue;
+
+        // Typed token is a prefix of a synonym key (min 3 chars: shr→shrimp)
+        if (t.length >= 3 && kn.startsWith(t) && kn.length > t.length) {
+          // Prefer longer / closer keys (shrimp over shrimps when tied)
+          const score = 100 + t.length * 4 - (kn.length - t.length);
+          if (score > bestScore) {
+            bestScore = score;
+            bestKey = key;
+          }
+          continue;
+        }
+
+        // Synonym key is a prefix of a longer typed token (shrimpp)
+        if (t.length >= kn.length && t.startsWith(kn) && t.length - kn.length <= 2) {
+          const score = 90;
+          if (score > bestScore) {
+            bestScore = score;
+            bestKey = key;
+          }
+          continue;
+        }
+
+        // Typo near a synonym key
+        if (t.length >= 4 && kn.length >= 4) {
+          const allowed = t.length < 6 ? 1 : 2;
+          if (Math.abs(t.length - kn.length) <= allowed) {
+            const d = levenshtein(t, kn);
+            if (d > 0 && d <= allowed) {
+              const score = 70 - d * 15;
+              if (score > bestScore) {
+                bestScore = score;
+                bestKey = key;
+              }
+            }
+          }
         }
       }
+
       if (bestKey) {
-        phrases.add(normalize(bestKey));
-        tokens(bestKey).forEach((x) => toks.add(x));
-        SYNONYMS[bestKey].forEach((syn) => {
-          phrases.add(normalize(syn));
-          tokens(syn).forEach((x) => toks.add(x));
-        });
+        applySynonymKey(bestKey, phrases, toks);
+        if (!hint && SYNONYMS[bestKey][0]) hint = SYNONYMS[bestKey][0];
       }
     });
 
-    return { phrases: [...phrases], tokens: [...toks] };
+    return { phrases: [...phrases], tokens: [...toks], hint };
   }
 
   function tags(item, cat) {
@@ -359,12 +403,16 @@
     let matched = false;
 
     for (const phrase of expanded.phrases) {
-      if (!phrase) continue;
+      if (!phrase || phrase.length < 3) continue;
       if (hay === phrase) {
         score += 120;
         matched = true;
-      } else if (hay.includes(phrase)) {
+      } else if (` ${hay} `.includes(` ${phrase} `)) {
+        // Whole-token phrase only (avoids “shr” matching inside “mushroom”)
         score += 70 + Math.min(phrase.length, 30);
+        matched = true;
+      } else if (phrase.length >= 4 && entry.tokens.some((et) => et.startsWith(phrase))) {
+        score += 50 + phrase.length;
         matched = true;
       }
     }
@@ -376,7 +424,7 @@
         matched = true;
         continue;
       }
-      // Prefix (e.g. chic → chicken)
+      // Prefix (e.g. chic → chicken, pra → prawn) — need 3+ chars
       if (qt.length >= 3) {
         const prefixHit = entry.tokens.some(
           (et) => et.startsWith(qt) || (qt.startsWith(et) && et.length >= 4)
@@ -387,15 +435,16 @@
           continue;
         }
       }
-      // Fuzzy token match (typos) — strict to avoid fries→fried noise
-      const allowed = fuzzyAllowed(qt.length);
-      if (!allowed) continue;
+      // Fuzzy token match (typos) — slight spelling errors
+      const allowed = fuzzyAllowed(Math.max(qt.length, 5));
+      if (!allowed || qt.length < 4) continue;
       for (const et of entry.tokens) {
         if (STOPWORDS.has(et)) continue;
+        if (!fuzzyOk(qt, et)) continue;
         if (Math.abs(et.length - qt.length) > allowed) continue;
         const d = levenshtein(qt, et);
         const maxLen = Math.max(qt.length, et.length);
-        if (d > 0 && d <= allowed && d / maxLen <= 0.34) {
+        if (d > 0 && d <= allowed && d / maxLen <= 0.45) {
           score += 18 - d * 5;
           matched = true;
           break;
@@ -433,44 +482,51 @@
     const qTokens = tokens(n);
     const candidates = new Map(); // label -> score
 
+    // Prefer UK menu terms from synonym values when the typed word is close
+    Object.keys(SYNONYMS).forEach((key) => {
+      const kn = normalize(key);
+      qTokens.forEach((qt) => {
+        if (qt.length < 3) return;
+        // prefix of synonym key → suggest the menu term (shrimp… → king prawn)
+        if (kn.startsWith(qt) && kn.length >= qt.length) {
+          const menuTerm = SYNONYMS[key][0];
+          candidates.set(menuTerm, (candidates.get(menuTerm) || 0) + 40 + qt.length);
+        }
+        const allowed = qt.length < 5 ? 1 : fuzzyAllowed(Math.max(qt.length, kn.length));
+        if (allowed && Math.abs(qt.length - kn.length) <= allowed) {
+          const d = levenshtein(qt, kn);
+          if (d > 0 && d <= allowed) {
+            const menuTerm = SYNONYMS[key][0];
+            candidates.set(menuTerm, (candidates.get(menuTerm) || 0) + 30 - d * 6);
+          }
+        }
+      });
+    });
+
     // Close dish names / tokens from index
     index.forEach((entry) => {
       const nameN = normalize(entry.name || entry.label);
       const d = levenshtein(n, nameN);
       const maxLen = Math.max(n.length, nameN.length);
-      if (d <= 3 && d / maxLen <= 0.45) {
+      if (n.length >= 4 && d <= 3 && d / maxLen <= 0.45) {
         candidates.set(entry.label, (candidates.get(entry.label) || 0) + 50 - d * 10);
       }
-      // Token-level: typed word close to a menu word
       qTokens.forEach((qt) => {
-        if (qt.length < 4 || STOPWORDS.has(qt)) return;
-        const allowed = fuzzyAllowed(qt.length);
+        if (qt.length < 3 || STOPWORDS.has(qt)) return;
         entry.tokens.forEach((et) => {
-          if (et.length < 4 || STOPWORDS.has(et)) return;
+          if (et.length < 3 || STOPWORDS.has(et)) return;
+          if (et.startsWith(qt) && et.length > qt.length) {
+            candidates.set(et, (candidates.get(et) || 0) + 22 + qt.length);
+          }
+          const allowed = fuzzyAllowed(Math.max(qt.length, et.length));
+          if (!allowed) return;
+          if (Math.abs(et.length - qt.length) > allowed) return;
           const td = levenshtein(qt, et);
           if (td > 0 && td <= allowed) {
             candidates.set(et, (candidates.get(et) || 0) + 20 - td * 5);
           }
         });
       });
-    });
-
-    // Synonym keys that are close typos
-    Object.keys(SYNONYMS).forEach((key) => {
-      const kn = normalize(key);
-      qTokens.forEach((qt) => {
-        if (qt.length < 4) return;
-        const d = levenshtein(qt, kn);
-        if (d > 0 && d <= fuzzyAllowed(qt.length)) {
-          candidates.set(key, (candidates.get(key) || 0) + 25 - d * 5);
-        }
-      });
-      if (n.length >= 4) {
-        const d = levenshtein(n, kn);
-        if (d > 0 && d <= fuzzyAllowed(n.length)) {
-          candidates.set(key, (candidates.get(key) || 0) + 30 - d * 8);
-        }
-      }
     });
 
     return [...candidates.entries()]
@@ -531,10 +587,11 @@
 
     if (scored.length) {
       const top = scored.slice(0, 4).map((x) => x.entry.label);
+      const mapped = expanded.hint ? normalize(expanded.hint) : "";
+      const typed = normalize(q);
       const synNote =
-        expanded.phrases.some((p) => p !== normalize(q) && p.length > 2) &&
-        /shrimp|fries|noodle|chili|wanton|szechuan|sichuan|schez|bbq|calamari/i.test(q)
-          ? ` <span class="search-syn">Matched related menu terms.</span>`
+        mapped && !typed.includes(mapped.split(" ").pop())
+          ? ` <span class="search-syn">Showing ${escapeHtml(expanded.hint)} dishes.</span>`
           : "";
       const topLine = top.length
         ? ` Top: ${top.map((t) => `<button type="button" class="search-suggest" data-suggest="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join(" ")}`
@@ -556,7 +613,7 @@
       return;
     }
 
-    // No matches — did you mean?
+    // No matches — did you mean? (typos / near misses)
     const suggestions = closestSuggestions(q, 5);
     searchStatus.hidden = false;
     if (suggestions.length) {
@@ -576,7 +633,7 @@
         });
       });
     } else {
-      searchStatus.innerHTML = `No matches for “${escapeHtml(q)}”. Try a dish, number, or ingredient (e.g. shrimp, curry, chips).`;
+      searchStatus.innerHTML = `No matches for “${escapeHtml(q)}”. Try a dish, number, or ingredient (e.g. king prawn, curry, chips).`;
     }
   }
 
@@ -596,7 +653,8 @@
     let timer = null;
     searchInput.addEventListener("input", () => {
       clearTimeout(timer);
-      timer = setTimeout(() => applySearch(searchInput.value), 120);
+      // Snappy while typing so prefixes like “shr” map to prawn immediately
+      timer = setTimeout(() => applySearch(searchInput.value), 40);
     });
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
