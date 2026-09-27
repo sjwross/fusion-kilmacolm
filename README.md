@@ -48,4 +48,4 @@ Document root on `premium139-4.web-hosting.com` (SSH port `21098`):
 
 - Static HTML/CSS/JS.
 - Menu content transcribed from Fusion’s printed takeaway menu sheets.
-- **Watermark:** the live root site shows a Yur Shack demo watermark. An unmarked copy is saved under [`clean/`](clean/).
+- **Watermark:** root is unmarked; the Yur Shack demo watermark lives under [`watermarked/`](watermarked/).
