@@ -1,0 +1,9 @@
+# Prefer revalidation for HTML; versioned query strings bust image caches
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "fusion-logo\.png|favicon.*\.png|apple-touch-icon\.png|yur-shack-wm\.png">
+    Header set Cache-Control "public, max-age=86400, must-revalidate"
+  </FilesMatch>
+</IfModule>
