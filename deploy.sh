@@ -62,4 +62,8 @@ tar -C "$ROOT" \
   -czf - . \
   | ssh "${SSH_OPTS[@]}" "$TARGET" "tar -xzf - -C '${REMOTE_DIR}'"
 
+# Remove legacy unmarked path if present (root is now the clean site)
+ssh "${SSH_OPTS[@]}" "$TARGET" "rm -rf '${REMOTE_DIR}/clean'" || true
+
 echo "Done. Visit https://fusion-kilmacolm.yurshack.co.uk/"
+echo "Watermarked demo copy: https://fusion-kilmacolm.yurshack.co.uk/watermarked/"
