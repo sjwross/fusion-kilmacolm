@@ -495,33 +495,56 @@
       if (tn.startsWith(prefix)) add(title, 60 + prefix.length * 3);
     });
 
-    // Synonym keys → UK menu terms (sh… → king prawn; s alone stays menu-native)
+    // Synonym keys → UK menu terms (shr… → shrimp → king prawn dishes)
+    const synonymTerms = new Set(); // normalized menu terms hit via synonyms
     Object.keys(SYNONYMS).forEach((key) => {
       const kn = normalize(key);
       const menuTerm = SYNONYMS[key][0];
       if (!menuTerm) return;
+      let hit = false;
       qTokens.forEach((qt) => {
         if (!qt) return;
         if (kn.startsWith(qt)) {
-          // Single letter: only suggest if the UK term also starts with that letter
           if (qt.length === 1) {
-            if (normalize(menuTerm).startsWith(qt)) add(menuTerm, 35);
+            if (normalize(menuTerm).startsWith(qt)) hit = true;
             return;
           }
-          // Two+ letters into a foreign/alt word → suggest the menu wording
-          add(menuTerm, 45 + qt.length * 4);
+          // Need 3+ letters (shr…) before committing shrimp → every king prawn meal
+          if (qt.length === 2) {
+            add(menuTerm, 28 + qt.length);
+            return;
+          }
+          hit = true;
         }
         if (qt.length >= 4) {
           const allowed = fuzzyAllowed(Math.max(qt.length, kn.length));
           if (allowed && Math.abs(qt.length - kn.length) <= allowed) {
             const d = levenshtein(qt, kn);
-            if (d > 0 && d <= allowed) add(menuTerm, 30 - d * 6);
+            if (d > 0 && d <= allowed) hit = true;
           }
         }
       });
-      // Also surface UK terms that themselves start with the typed prefix
-      if (normalize(menuTerm).startsWith(prefix)) add(menuTerm, 50 + prefix.length);
+      if (normalize(menuTerm).startsWith(prefix) && prefix.length >= 2) hit = true;
+      if (!hit) return;
+      (SYNONYMS[key] || []).forEach((term) => synonymTerms.add(normalize(term)));
+      // Bare UK wording is only a low-priority fallback — dishes below win
+      add(menuTerm, 20 + Math.min(prefix.length, 6));
     });
+
+    // When a synonym maps (shrimp → king prawn), recommend actual matching meals
+    if (synonymTerms.size) {
+      index.forEach((entry) => {
+        for (const term of synonymTerms) {
+          if (!term || term.length < 3) continue;
+          const hayPad = ` ${entry.hay} `;
+          if (hayPad.includes(` ${term} `) || entry.hay.includes(term)) {
+            // Multi-word terms (king prawn) outrank single tokens (prawn)
+            const boost = term.includes(" ") ? 85 : 72;
+            add(entry.label, boost + Math.min(prefix.length, 10));
+          }
+        }
+      });
+    }
 
     // Dish names and tokens from the menu index
     index.forEach((entry) => {
@@ -560,9 +583,17 @@
       });
     });
 
-    // Prefer short, useful chips: categories / ingredients over long duplicate dish variants
+    const dishLabels = new Set(index.map((e) => e.label));
+    // Prefer real menu dishes over bare synonym chips (e.g. meals over “king prawn”)
     return [...candidates.entries()]
-      .sort((a, b) => b[1] - a[1] || a[0].length - b[0].length || a[0].localeCompare(b[0]))
+      .sort((a, b) => {
+        const scoreDiff = b[1] - a[1];
+        if (scoreDiff) return scoreDiff;
+        const aDish = dishLabels.has(a[0]) ? 1 : 0;
+        const bDish = dishLabels.has(b[0]) ? 1 : 0;
+        if (aDish !== bDish) return bDish - aDish;
+        return a[0].localeCompare(b[0]);
+      })
       .slice(0, limit)
       .map(([label]) => label);
   }
