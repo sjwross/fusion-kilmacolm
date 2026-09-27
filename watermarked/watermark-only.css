@@ -1,0 +1,75 @@
+/* Watermarked-build-only styles. Applied by scripts/sync-site-copies.sh */
+/* Decorative 1px dots — disabled on watermarked build (reads as “dots watermark”). */
+.hero-pattern {
+  display: none;
+}
+
+.site-footer .yur-shack-credit {
+  margin-top: 0.85rem;
+}
+
+.site-footer .yur-shack-credit a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.site-footer .yur-shack-credit a:hover {
+  color: var(--gold-bright);
+}
+
+.demo-banner {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.55rem;
+  padding: 0.45rem 1rem;
+  background: linear-gradient(90deg, rgba(158, 26, 26, 0.95), rgba(90, 18, 14, 0.96));
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(245, 223, 160, 0.35);
+}
+
+.demo-banner a {
+  color: var(--gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.demo-banner__sep {
+  opacity: 0.55;
+}
+
+body:has(.demo-banner) .topbar {
+  top: 2.05rem;
+}
+
+body:has(.demo-banner) .hero {
+  padding-top: clamp(7rem, 14vh, 9.5rem);
+}
+
+/* ——— Yur Shack watermark (PNG tile — reliable text, no CSS/SVG font issues) ——— */
+.yur-shack-watermark {
+  position: fixed;
+  z-index: 80;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.7;
+  background-image: url("../assets/yur-shack-wm.png");
+  background-repeat: repeat;
+  background-size: 460px 230px;
+  transform: rotate(-28deg) scale(1.45);
+  transform-origin: center center;
+  width: 180%;
+  height: 180%;
+  left: -40%;
+  top: -40%;
+}
